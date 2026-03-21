@@ -1,0 +1,44 @@
+[
+  {
+    "id": "ev-1",
+    "source_doc": "SOC 2 Type II Report",
+    "title": "Encryption at Rest",
+    "tags": ["encryption", "aes", "data-at-rest"],
+    "content": "All customer data is encrypted at rest using AES-256 encryption. Encryption keys are managed through a dedicated key management service with automatic rotation every 90 days. Data in transit is protected using TLS 1.2 or higher for all external and internal communications."
+  },
+  {
+    "id": "ev-2",
+    "source_doc": "SOC 2 Type II Report",
+    "title": "Access Controls",
+    "tags": ["rbac", "access", "authentication"],
+    "content": "Role-based access control (RBAC) is enforced across all production systems. Access is granted on a least-privilege basis and reviewed quarterly. Multi-factor authentication is required for all employees accessing production infrastructure."
+  },
+  {
+    "id": "ev-3",
+    "source_doc": "Incident Response Plan",
+    "title": "IR Process",
+    "tags": ["incident", "response", "detection"],
+    "content": "Our incident response follows a four-phase approach: (1) Detection and analysis using automated monitoring and alerting, (2) Containment to limit blast radius, (3) Eradication of root cause, and (4) Recovery with post-incident review. All incidents are classified by severity and tracked to resolution. Post-mortems are conducted for any Sev-1 or Sev-2 incident."
+  },
+  {
+    "id": "ev-4",
+    "source_doc": "Data Processing Agreement",
+    "title": "Data Retention",
+    "tags": ["retention", "deletion", "data"],
+    "content": "Customer data is retained for the duration of the service agreement plus 30 days. Upon contract termination or customer request, data is securely deleted within 30 days using NIST 800-88 compliant methods. Automated retention policies enforce deletion schedules."
+  },
+  {
+    "id": "ev-5",
+    "source_doc": "Security Policy",
+    "title": "Vulnerability Management",
+    "tags": ["pentest", "vulnerability", "scanning"],
+    "content": "We conduct quarterly penetration tests performed by independent third-party firms. Automated vulnerability scanning runs weekly across all production assets. Critical vulnerabilities are remediated within 48 hours; high-severity within 7 days."
+  },
+  {
+    "id": "ev-6",
+    "source_doc": "Security Policy",
+    "title": "Employee Training",
+    "tags": ["training", "awareness", "employees"],
+    "content": "All employees complete annual security awareness training covering phishing, social engineering, data handling, and incident reporting. New hires complete training within their first week. Completion rates are tracked and reported to management quarterly."
+  }
+]
