@@ -95,3 +95,14 @@ def test_get_run_by_id(client):
 def test_get_run_not_found(client):
     resp = client.get("/api/runs/nonexistent")
     assert resp.status_code == 404
+
+
+def test_encryption_question_ranks_encryption_chunk_first(client):
+    """The encryption question should cite the Encryption at Rest chunk first."""
+    resp = client.post("/api/runs")
+    data = resp.json()
+
+    q1 = next(a for a in data["answers"] if a["question_id"] == "q-1")
+    assert q1["status"] == "APPROVED"
+    assert q1["citations"][0]["id"] == "ev-1"
+    assert "Encryption" in q1["citations"][0]["title"]

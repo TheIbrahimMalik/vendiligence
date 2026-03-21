@@ -34,6 +34,19 @@ def search_evidence(
     if not query_tokens:
         return []
 
+    # Build document frequency: how many chunks contain each token (across all fields).
+    # Tokens appearing in many chunks are less discriminating and get lower weight.
+    n = len(evidence)
+    doc_freq: dict[str, int] = {}
+    for chunk in evidence:
+        all_tokens = (
+            _tokenize(chunk.content)
+            | _tokenize(chunk.title)
+            | {t.lower() for t in chunk.tags}
+        )
+        for t in all_tokens:
+            doc_freq[t] = doc_freq.get(t, 0) + 1
+
     scored: list[tuple[float, EvidenceChunk]] = []
     for chunk in evidence:
         content_tokens = _tokenize(chunk.content)
@@ -42,12 +55,18 @@ def search_evidence(
 
         score = 0.0
         for token in query_tokens:
-            if token in content_tokens:
-                score += 1
+            # Tokens that appear in fewer chunks get higher weight
+            df = doc_freq.get(token, 0)
+            if df == 0:
+                continue
+            specificity = n / df  # 1.0 when in all chunks, higher when rare
+
             if token in title_tokens:
-                score += 2
+                score += 3 * specificity
             if token in tag_tokens:
-                score += 2
+                score += 3 * specificity
+            if token in content_tokens:
+                score += 1 * specificity
 
         if score > 0:
             scored.append((score, chunk))
