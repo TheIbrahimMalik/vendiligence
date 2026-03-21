@@ -5,6 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timezone
 
+from app import civic_tools
 from app.agents import evidence as evidence_agent
 from app.agents import policy as policy_agent
 from app.agents import router as router_agent
@@ -40,6 +41,14 @@ def execute_run(
     tasks = []
     events: list[AuditEvent] = []
 
+    # --- Civic session event ---
+    info = civic_tools.session_info()
+    if info["civic_configured"]:
+        civic_detail = f"toolkit={info['toolkit']}, hub={info['hub_url']}"
+    else:
+        civic_detail = "civic not configured, using local fallback"
+    events.append(_audit(run_id, "*", "civic", "session_start", civic_detail))
+
     for q in questions:
         # --- Router ---
         router_result = router_agent.run(q.text)
@@ -49,11 +58,12 @@ def execute_run(
 
         # --- Evidence ---
         ev_result = evidence_agent.run(q.text, router_result, evidence_store)
+        ev_source = "civic_tool_call" if civic_tools.is_configured() else "local_search"
         ev_detail = (
-            f"sufficient={ev_result.sufficient}, citations={len(ev_result.citations)}, "
-            f"confidence={ev_result.confidence:.2f}"
+            f"source={ev_source}, sufficient={ev_result.sufficient}, "
+            f"citations={len(ev_result.citations)}, confidence={ev_result.confidence:.2f}"
         )
-        events.append(_audit(run_id, q.id, "evidence", "search", ev_detail))
+        events.append(_audit(run_id, q.id, "evidence", ev_source, ev_detail))
 
         # --- Policy ---
         pol_result = policy_agent.run(q.id, q.text, router_result, ev_result, run_id)

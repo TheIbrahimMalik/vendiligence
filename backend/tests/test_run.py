@@ -106,3 +106,65 @@ def test_encryption_question_ranks_encryption_chunk_first(client):
     assert q1["status"] == "APPROVED"
     assert q1["citations"][0]["id"] == "ev-1"
     assert "Encryption" in q1["citations"][0]["title"]
+
+
+# ---------------------------------------------------------------------------
+# Civic integration tests
+# ---------------------------------------------------------------------------
+
+
+def test_tool_search_evidence(client):
+    """MCP tool route returns evidence chunks for a query."""
+    resp = client.post("/api/tools/search_evidence", json={"query": "encryption"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert len(data) > 0
+    assert data[0]["id"] == "ev-1"
+
+
+def test_tool_export_blocked(client):
+    """Export is blocked when run contains BLOCKED answers."""
+    run_resp = client.post("/api/runs")
+    run_id = run_resp.json()["id"]
+
+    resp = client.post("/api/tools/export_package", json={"run_id": run_id})
+    assert resp.status_code == 403
+    assert "BLOCKED" in resp.json()["detail"]
+
+
+def test_tool_export_succeeds(client):
+    """Export succeeds when run has no BLOCKED answers (uses storage directly)."""
+    from datetime import datetime, timezone
+    from app.models import Answer, RunResult, Status
+    from app.storage import save_run
+
+    clean_run = RunResult(
+        id="clean-test-run",
+        created_at=datetime.now(timezone.utc),
+        answers=[
+            Answer(
+                question_id="q-1",
+                question_text="Test?",
+                status=Status.APPROVED,
+                draft_answer="Yes.",
+                reason="test",
+            )
+        ],
+    )
+    save_run(clean_run)
+
+    resp = client.post("/api/tools/export_package", json={"run_id": "clean-test-run"})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["export_permitted"] is True
+    assert data["blocked_count"] == 0
+
+
+def test_civic_session_event(client):
+    """First audit event in a run is the civic session_start event."""
+    resp = client.post("/api/runs")
+    data = resp.json()
+    first_event = data["audit_events"][0]
+    assert first_event["agent"] == "civic"
+    assert first_event["action"] == "session_start"
+    assert "fallback" in first_event["detail"]  # no CIVIC_TOKEN in tests

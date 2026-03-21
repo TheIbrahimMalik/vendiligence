@@ -65,9 +65,19 @@ class AuditEvent(BaseModel):
 class RunResult(BaseModel):
     id: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    civic_session_id: Optional[str] = None
     answers: list[Answer] = Field(default_factory=list)
     tasks: list[FollowupTask] = Field(default_factory=list)
     audit_events: list[AuditEvent] = Field(default_factory=list)
+
+
+class ExportResult(BaseModel):
+    run_id: str
+    exported_at: datetime
+    answers: list[Answer] = Field(default_factory=list)
+    tasks: list[FollowupTask] = Field(default_factory=list)
+    blocked_count: int = 0
+    export_permitted: bool = True
 
 
 class RouterResult(BaseModel):

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from app import civic_tools
 from app.models import EvidenceChunk, EvidenceResult, RouterAction, RouterResult
 from app.retrieval import search_evidence
 
@@ -17,7 +18,7 @@ def run(
     if router_result.action == RouterAction.BLOCKED:
         return EvidenceResult(sufficient=False)
 
-    matches = search_evidence(question_text, evidence_store, top_k=3)
+    matches = _search(question_text, evidence_store)
 
     if not matches:
         return EvidenceResult(
@@ -37,3 +38,14 @@ def run(
         confidence=confidence,
         sufficient=True,
     )
+
+
+def _search(query: str, evidence_store: list[EvidenceChunk]) -> list[EvidenceChunk]:
+    """Route evidence search through Civic MCP hub or fall back to local."""
+    if civic_tools.is_configured():
+        try:
+            raw = civic_tools.call_tool("search_evidence", {"query": query})
+            return [EvidenceChunk(**c) for c in raw]
+        except Exception:
+            pass  # Civic hub unreachable — fall back to local
+    return search_evidence(query, evidence_store, top_k=3)

@@ -4,15 +4,16 @@ from __future__ import annotations
 
 import json
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from app.agents.runner import execute_run
-from app.models import EvidenceChunk, Question, RunResult
-from app.retrieval import load_evidence
+from app.models import EvidenceChunk, ExportResult, Question, RunResult, Status
+from app.retrieval import load_evidence, search_evidence
 from app.storage import get_run, init_storage, reset_storage
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
@@ -42,6 +43,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ---------------------------------------------------------------------------
+# Core endpoints
+# ---------------------------------------------------------------------------
 
 @app.get("/health")
 def health():
@@ -75,3 +80,56 @@ def get_run_by_id(run_id: str):
     if result is None:
         raise HTTPException(status_code=404, detail="Run not found")
     return result
+
+
+# ---------------------------------------------------------------------------
+# MCP tool routes — exposed via fastapi-mcp as the locked toolkit
+# ---------------------------------------------------------------------------
+
+class SearchEvidenceRequest(BaseModel):
+    query: str
+    top_k: int = 3
+
+
+@app.post("/api/tools/search_evidence")
+def tool_search_evidence(request: Request, body: SearchEvidenceRequest):
+    """Search approved evidence. Exposed as MCP tool via Civic hub."""
+    evidence = request.app.state.evidence
+    results = search_evidence(body.query, evidence, body.top_k)
+    return [chunk.model_dump() for chunk in results]
+
+
+class ExportPackageRequest(BaseModel):
+    run_id: str
+
+
+@app.post("/api/tools/export_package", response_model=ExportResult)
+def tool_export_package(body: ExportPackageRequest):
+    """Export answer pack. Blocked if any BLOCKED answers exist."""
+    result = get_run(body.run_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Run not found")
+    blocked = [a for a in result.answers if a.status == Status.BLOCKED]
+    if blocked:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Export blocked: {len(blocked)} BLOCKED answer(s) present",
+        )
+    return ExportResult(
+        run_id=body.run_id,
+        exported_at=datetime.now(timezone.utc),
+        answers=result.answers,
+        tasks=result.tasks,
+        blocked_count=0,
+        export_permitted=True,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Mount fastapi-mcp — exposes tool routes as MCP-compatible endpoints
+# ---------------------------------------------------------------------------
+
+from fastapi_mcp import FastApiMCP  # noqa: E402
+
+mcp = FastApiMCP(app, name="vendiligence-tools", describe_full_response_schema=True)
+mcp.mount_http()
