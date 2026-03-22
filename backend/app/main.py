@@ -91,7 +91,7 @@ class SearchEvidenceRequest(BaseModel):
     top_k: int = 3
 
 
-@app.post("/api/tools/search_evidence")
+@app.post("/api/tools/search_evidence", operation_id="search_evidence")
 def tool_search_evidence(request: Request, body: SearchEvidenceRequest):
     """Search approved evidence. Exposed as MCP tool via Civic hub."""
     evidence = request.app.state.evidence
@@ -103,7 +103,7 @@ class ExportPackageRequest(BaseModel):
     run_id: str
 
 
-@app.post("/api/tools/export_package", response_model=ExportResult)
+@app.post("/api/tools/export_package", operation_id="export_package", response_model=ExportResult)
 def tool_export_package(body: ExportPackageRequest):
     """Export answer pack. Blocked if any BLOCKED answers exist."""
     result = get_run(body.run_id)
@@ -131,5 +131,10 @@ def tool_export_package(body: ExportPackageRequest):
 
 from fastapi_mcp import FastApiMCP  # noqa: E402
 
-mcp = FastApiMCP(app, name="vendiligence-tools", describe_full_response_schema=True)
+mcp = FastApiMCP(
+    app,
+    name="vendiligence-tools",
+    describe_full_response_schema=True,
+    include_operations=["search_evidence", "export_package"],
+)
 mcp.mount_http()
