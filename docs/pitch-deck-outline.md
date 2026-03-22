@@ -64,22 +64,22 @@ The system does not just answer. It handles uncertainty and adversarial input co
 
 ## Slide 6 — Guardrails and auditability
 Guardrail story:
-- Civic MCP hub integration path exists
-- local fallback works when Civic is not configured
-- audit log records the active mode honestly
-- blocked malicious case is visible in the run
+- Civic MCP hub integration path implemented with public MCP tool surface validated
+- demo runs in transparent local fallback mode — recorded honestly in the audit log
+- blocked malicious case is visible and auditable in the run
+- export is blocked when any answer is BLOCKED
 
 Key message:
-The workflow is inspectable, and guardrail behavior is not hidden.
+The workflow is inspectable. Guardrail behavior is real, visible, and not overclaimed.
 
 ## Slide 7 — Why it stands out
 What judges should remember:
 
-- **Autonomy:** structured multi-step workflow
-- **Usefulness:** real enterprise bottleneck
-- **Technical depth:** routing, retrieval, verification, tasks, audit log
-- **Creativity:** refusal and escalation are core product behaviors
-- **Guardrails:** malicious prompt blocked, fallback mode reported honestly
+- **Autonomy:** structured 3-agent pipeline making real decisions at each stage
+- **Usefulness:** addresses a real, repetitive enterprise bottleneck
+- **Technical depth:** routing, retrieval, verification, follow-up tasks, audit log, Civic MCP tool boundary
+- **Creativity:** refusal and escalation are first-class product behaviors, not edge cases
+- **Guardrails/safety:** malicious prompt blocked, export gated, fallback mode reported honestly in the audit trail
 
 Closing line:
 **Vendiligence turns due-diligence automation from a risky assistant into a bounded, inspectable agent workflow.**

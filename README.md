@@ -81,14 +81,15 @@ That behavior is a feature:
 
 ## Civic integration status
 
-Vendiligence includes a **Civic MCP hub integration path with local fallback**.
+Vendiligence includes a **Civic MCP hub integration path with transparent local fallback**.
 
-Current behavior:
-- when Civic is configured, the app has a dedicated integration path for Civic-backed checks
-- when Civic is not configured, the app falls back to local policy/guardrail logic
-- the audit log records this honestly, including a `session_start` event and whether the run is using the fallback path
+Current status:
+- Civic MCP hub integration path implemented in `backend/app/civic_tools.py`
+- public MCP tool surface validated (`search_evidence`, `export_package` exposed via fastapi-mcp)
+- demo runs in local fallback mode — custom remote toolkit registration was not self-serve in the current Civic environment
+- audit log records the active mode honestly, including a `session_start` event on every run
 
-This keeps the demo transparent: guardrail behavior is visible even when Civic is not actively configured.
+The fallback is not a gap. The guardrail behaviors — blocked malicious prompt, gated export, follow-up task creation — are real and visible in every demo run.
 
 ## Current implementation
 

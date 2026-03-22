@@ -83,7 +83,9 @@ Pause here again. This is the strongest safety moment.
 
 Point to the audit timeline.
 
-"The audit trail shows the workflow step by step, including session start, routing, evidence retrieval, task creation, and the block event. If Civic is not configured, the fallback path is shown honestly in the log."
+"The audit trail shows the workflow step by step, including session start, routing, evidence retrieval, task creation, and the block event. The fallback mode is recorded honestly in the log."
+
+Vendiligence includes a Civic MCP hub integration path, and for this demo it runs in transparent local fallback mode because custom remote toolkit registration was not self-serve in the current Civic environment.
 
 Closing line:
 
@@ -109,7 +111,7 @@ Closing line:
 ## What not to say
 
 Avoid:
-- claiming fully live Civic-backed enforcement if you have not verified it end-to-end
+- claiming fully live Civic-backed enforcement — the demo runs in transparent local fallback mode
 - describing the product as a generic assistant
 - spending too long on framework choices
 - talking about future integrations
@@ -130,4 +132,4 @@ Before presenting:
 - confirm one follow-up task is visible
 - confirm blocked case is visible
 - confirm audit timeline is populated
-- confirm the audit shows session start and whether the run used fallback mode
+- confirm the audit shows session start and that the run is in local fallback mode
